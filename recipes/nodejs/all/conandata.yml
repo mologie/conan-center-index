@@ -91,3 +91,25 @@ sources:
             "armv8":
                 url: "https://nodejs.org/dist/v18.15.0/node-v18.15.0-darwin-arm64.tar.gz"
                 sha256: "bd302a689c3c34e2b61d86b97de66d26a335881a17af09b6a0a4bb1019df56e4"
+    "18.20.3":
+        Windows:
+            "x86_64":
+                url: "https://nodejs.org/dist/v18.20.3/node-v18.20.3-win-x64.zip"
+                sha256: "8e91df18904f9cc2950dca17b737e779dbd780c7b7a2192458d42af901c8f2d3"
+        Linux:
+            "x86_64":
+                url: "https://nodejs.org/dist/v18.20.3/node-v18.20.3-linux-x64.tar.xz"
+                sha256: "ffd6147c263b81016742dc1e72dc68885a3ca9b441d9744f9b76cad362d0cc5f"
+            "armv7":
+                url: "https://nodejs.org/dist/v18.20.3/node-v18.20.3-linux-armv7l.tar.xz"
+                sha256: "d5c6efda2f88718556cd0d6df4cc5adadc4f24aef80c63c3dbd54b1ecf34f52c"
+            "armv8":
+                url: "https://nodejs.org/dist/v18.20.3/node-v18.20.3-linux-arm64.tar.xz"
+                sha256: "3c497c19ddbf75bab7fecb36ddf1738622f0ba244aa1e0aebc70e46daf1a0794"
+        Macos:
+            "x86_64":
+                url: "https://nodejs.org/dist/v18.20.3/node-v18.20.3-darwin-x64.tar.gz"
+                sha256: "317a4607390c923610303e8583972e23fb656e9d348d3740bde0f1a94cdb7e0c"
+            "armv8":
+                url: "https://nodejs.org/dist/v18.20.3/node-v18.20.3-darwin-arm64.tar.gz"
+                sha256: "99328b985f7336a8fcfb62fda382155d210979fcca928e2dd75b7148d9bba636"
