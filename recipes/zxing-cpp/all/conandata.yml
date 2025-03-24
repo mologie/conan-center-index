@@ -26,6 +26,9 @@ patches:
     - patch_file: "patches/2.3.0-0001-expose-rs.patch"
       patch_description: "expose Reed-Solomon headers and add AVCore GF"
       patch_type: "backport"
+    - patch_file: "patches/2.3.0-0002-consistent-dm-reader.patch"
+      patch_description: "remove conditional compilation of DataMatrix features"
+      patch_type: "portability"
   "1.4.0":
     # core/ByteArray checks `__cpp_lib_string_view` for using string_view.
     # But some compilers(ex. gcc 7.2) don't support `__cpp_lib_string_view` but support string_view.
