@@ -1,0 +1,44 @@
+diff --git a/core/CMakeLists.txt b/core/CMakeLists.txt
+index e870fb9c..0a37b9ae 100644
+--- a/core/CMakeLists.txt
++++ b/core/CMakeLists.txt
+@@ -159,7 +159,10 @@ set (PUBLIC_HEADERS
+     src/ByteArray.h
+     src/CharacterSet.h
+     src/Flags.h
++    src/GenericGF.h
++    src/GenericGFPoly.h
+     src/GTIN.h
++    src/ReedSolomonDecoder.h
+     src/TextUtfEncoding.h # [[deprecated]]
+     src/ZXAlgorithms.h
+     src/ZXConfig.h
+diff --git a/core/src/GenericGF.cpp b/core/src/GenericGF.cpp
+index d6c03ab0..9b8bf192 100644
+--- a/core/src/GenericGF.cpp
++++ b/core/src/GenericGF.cpp
+@@ -7,6 +7,12 @@
+ #include "GenericGF.h"
+ 
+ namespace ZXing {
++const GenericGF &
++GenericGF::AVCore()
++{
++	static GenericGF inst(0xb, 8, 1); // x^3 + x + 1
++	return inst;
++}
+ 
+ const GenericGF &
+ GenericGF::AztecData12()
+diff --git a/core/src/GenericGF.h b/core/src/GenericGF.h
+index 4f25b625..8c4141a6 100644
+--- a/core/src/GenericGF.h
++++ b/core/src/GenericGF.h
+@@ -46,6 +46,7 @@ class GenericGF
+ 	GenericGF(int primitive, int size, int b);
+ 
+ public:
++	static const GenericGF& AVCore();
+ 	static const GenericGF& AztecData12();
+ 	static const GenericGF& AztecData10();
+ 	static const GenericGF& AztecData6();
