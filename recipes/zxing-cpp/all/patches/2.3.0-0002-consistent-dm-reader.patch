@@ -1,0 +1,211 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b48b2d09..d1740b97 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -70,14 +70,9 @@ if(NOT ZXING_DEPENDENCIES IN_LIST ZXING_DEPENDENCIES_LIST)
+     message(FATAL_ERROR "ZXING_DEPENDENCIES must be one of ${ZXING_DEPENDENCIES_LIST}")
+ endif()
+ 
+-if (NOT DEFINED CMAKE_CXX_STANDARD)
+-    set (CMAKE_CXX_STANDARD 20)
+-    # Allow the fallback to earlier versions if the compiler does not support it.
+-    set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+-endif()
+-if (NOT DEFINED CMAKE_CXX_EXTENSIONS)
+-    set (CMAKE_CXX_EXTENSIONS OFF)
+-endif()
++set(CMAKE_CXX_STANDARD 23)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
++set(CMAKE_CXX_EXTENSIONS OFF)
+ 
+ add_subdirectory (core)
+ 
+diff --git a/core/src/Generator.h b/core/src/Generator.h
+index a5083e9d..44ca74b1 100644
+--- a/core/src/Generator.h
++++ b/core/src/Generator.h
+@@ -5,35 +5,15 @@
+ 
+ #pragma once
+ 
+-#ifdef __ANDROID__
+-#include <android/ndk-version.h>
+-#endif
+-
+-#ifdef __cpp_impl_coroutine
+-#if defined __ANDROID__ && __NDK_MAJOR__ < 26
+-// NDK 25.1.8937393 can compile this code with c++20 but needs a few tweaks:
+-#include <experimental/coroutine>
+-namespace std {
+-	using experimental::suspend_always;
+-	using experimental::coroutine_handle;
+-	struct default_sentinel_t {};
+-}
+-#else
+ #include <concepts>
+ #include <coroutine>
+-#endif
+-
+ #include <optional>
+ #include <iterator>
+ 
+ // this code is based on https://en.cppreference.com/w/cpp/coroutine/coroutine_handle#Example
+ // but modified trying to prevent accidental copying of generated objects
+ 
+-#if defined __ANDROID__ && __NDK_MAJOR__ < 26
+-template <class T>
+-#else
+ template <std::movable T>
+-#endif
+ class Generator
+ {
+ public:
+@@ -110,8 +90,6 @@ private:
+ 	Handle _coroutine;
+ };
+ 
+-#endif
+-
+ /*
+ usage example:
+ 
+diff --git a/core/src/datamatrix/DMDetector.cpp b/core/src/datamatrix/DMDetector.cpp
+index 24e287ed..e57ad3a5 100644
+--- a/core/src/datamatrix/DMDetector.cpp
++++ b/core/src/datamatrix/DMDetector.cpp
+@@ -865,11 +865,6 @@ static DetectorResults DetectNew(const BitMatrix& image, bool tryHarder, bool tr
+ //	tryRotate = tryHarder = false;
+ #endif
+ 
+-	// disable expensive multi-line scan to detect off-center symbols for now
+-#ifndef __cpp_impl_coroutine
+-	tryHarder = false;
+-#endif
+-
+ 	// a history log to remember where the tracing already passed by to prevent a later trace from doing the same work twice
+ 	ByteMatrix history;
+ 	if (tryHarder)
+@@ -895,14 +890,9 @@ static DetectorResults DetectNew(const BitMatrix& image, bool tryHarder, bool tr
+ 			if (!tracer.isIn())
+ 				break;
+ 
+-#ifdef __cpp_impl_coroutine
+ 			DetectorResult res;
+ 			while (res = Scan(tracer, lines), res.isValid())
+ 				co_yield std::move(res);
+-#else
+-			if (auto res = Scan(tracer, lines); res.isValid())
+-				return res;
+-#endif
+ 
+ 			if (!tryHarder)
+ 				break; // only test center lines
+@@ -911,10 +901,6 @@ static DetectorResults DetectNew(const BitMatrix& image, bool tryHarder, bool tr
+ 		if (!tryRotate)
+ 			break; // only test left direction
+ 	}
+-
+-#ifndef __cpp_impl_coroutine
+-	return {};
+-#endif
+ }
+ 
+ /**
+@@ -959,7 +945,6 @@ static DetectorResult DetectPure(const BitMatrix& image)
+ 
+ DetectorResults Detect(const BitMatrix& image, bool tryHarder, bool tryRotate, bool isPure)
+ {
+-#ifdef __cpp_impl_coroutine
+ 	// First try the very fast DetectPure() path. Also because DetectNew() generally fails with pure module size 1 symbols
+ 	// TODO: implement a tryRotate version of DetectPure, see #590.
+ 	if (auto r = DetectPure(image); r.isValid())
+@@ -975,14 +960,6 @@ DetectorResults Detect(const BitMatrix& image, bool tryHarder, bool tryRotate, b
+ 				co_yield std::move(r);
+ 		}
+ 	}
+-#else
+-	auto result = DetectPure(image);
+-	if (!result.isValid() && !isPure)
+-		result = DetectNew(image, tryHarder, tryRotate);
+-	if (!result.isValid() && tryHarder && !isPure)
+-		result = DetectOld(image);
+-	return result;
+-#endif
+ }
+ 
+ } // namespace ZXing::DataMatrix
+diff --git a/core/src/datamatrix/DMDetector.h b/core/src/datamatrix/DMDetector.h
+index 52668698..0135e330 100644
+--- a/core/src/datamatrix/DMDetector.h
++++ b/core/src/datamatrix/DMDetector.h
+@@ -6,10 +6,8 @@
+ 
+ #pragma once
+ 
+-#ifdef __cpp_impl_coroutine
+ #include <Generator.h>
+ #include <DetectorResult.h>
+-#endif
+ 
+ namespace ZXing {
+ 
+@@ -18,11 +16,7 @@ class DetectorResult;
+ 
+ namespace DataMatrix {
+ 
+-#ifdef __cpp_impl_coroutine
+ using DetectorResults = Generator<DetectorResult>;
+-#else
+-using DetectorResults = DetectorResult;
+-#endif
+ 
+ DetectorResults Detect(const BitMatrix& image, bool tryHarder, bool tryRotate, bool isPure);
+ 
+diff --git a/core/src/datamatrix/DMReader.cpp b/core/src/datamatrix/DMReader.cpp
+index 1244c3d0..ac2b126b 100644
+--- a/core/src/datamatrix/DMReader.cpp
++++ b/core/src/datamatrix/DMReader.cpp
+@@ -20,22 +20,9 @@ namespace ZXing::DataMatrix {
+ 
+ Barcode Reader::decode(const BinaryBitmap& image) const
+ {
+-#ifdef __cpp_impl_coroutine
+ 	return FirstOrDefault(decode(image, 1));
+-#else
+-	auto binImg = image.getBitMatrix();
+-	if (binImg == nullptr)
+-		return {};
+-	
+-	auto detectorResult = Detect(*binImg, _opts.tryHarder(), _opts.tryRotate(), _opts.isPure());
+-	if (!detectorResult.isValid())
+-		return {};
+-
+-	return Barcode(Decode(detectorResult.bits()), std::move(detectorResult), BarcodeFormat::DataMatrix);
+-#endif
+ }
+ 
+-#ifdef __cpp_impl_coroutine
+ Barcodes Reader::decode(const BinaryBitmap& image, int maxSymbols) const
+ {
+ 	auto binImg = image.getBitMatrix();
+@@ -54,5 +41,5 @@ Barcodes Reader::decode(const BinaryBitmap& image, int maxSymbols) const
+ 
+ 	return res;
+ }
+-#endif
++
+ } // namespace ZXing::DataMatrix
+diff --git a/core/src/datamatrix/DMReader.h b/core/src/datamatrix/DMReader.h
+index 4022870d..aedb3de0 100644
+--- a/core/src/datamatrix/DMReader.h
++++ b/core/src/datamatrix/DMReader.h
+@@ -16,9 +16,7 @@ public:
+ 	using ZXing::Reader::Reader;
+ 
+ 	Barcode decode(const BinaryBitmap& image) const override;
+-#ifdef __cpp_impl_coroutine
+ 	Barcodes decode(const BinaryBitmap& image, int maxSymbols) const override;
+-#endif
+ };
+ 
+ } // namespace ZXing::DataMatrix
