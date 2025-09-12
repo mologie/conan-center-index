@@ -37,12 +37,7 @@ class TensorflowLiteConan(ConanFile):
         "with_mmap": True,
         "with_xnnpack": True
     }
-
     short_paths = True
-
-    @property
-    def _min_cppstd(self):
-        return "17"
 
     def export_sources(self):
         export_conandata_patches(self)
@@ -63,7 +58,7 @@ class TensorflowLiteConan(ConanFile):
         cmake_layout(self, src_folder="src")
 
     def requirements(self):
-        self.requires("abseil/20230125.3")
+        self.requires("abseil/20250512.1")
         self.requires("eigen/3.4.0")
         self.requires("farmhash/cci.20190513")
         self.requires("fft/cci.20061228")
@@ -75,13 +70,13 @@ class TensorflowLiteConan(ConanFile):
         if self.settings.arch in ("x86", "x86_64"):
             self.requires("intel-neon2sse/cci.20210225")
         if self.options.with_xnnpack:
-            self.requires("xnnpack/cci.20231026")
+            self.requires("xnnpack/cci.20240229")
         if self.options.with_xnnpack or self.options.get_safe("with_nnapi", False):
             self.requires("fp16/cci.20210320")
 
     def validate(self):
         if self.settings.get_safe("compiler.cppstd"):
-            check_min_cppstd(self, self._min_cppstd)
+            check_min_cppstd(self, "20")
 
     def build_requirements(self):
         self.tool_requires("cmake/[>=3.16 <5]")

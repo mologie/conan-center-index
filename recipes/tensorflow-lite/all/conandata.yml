@@ -14,3 +14,6 @@ patches:
     - patch_file: "patches/2.15.0-0003-use-cci-dependencies.patch"
       patch_description: "Dependency compatibility: Patch CMakeLists.txt, updating package names, target names, etc"
       patch_type: "conan"
+    - patch_file: "patches/2.15.0-0004-enable-cpp20.patch"
+      patch_description: "Abseil since 2025 requires at least C++20 for std::weak_ordering, among others"
+      patch_type: "backport"
