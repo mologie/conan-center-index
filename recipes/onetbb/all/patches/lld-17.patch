@@ -1,0 +1,18 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -231,6 +231,15 @@
+ endif()
+
+ # -------------------------------------------------------------------
++# Workaround for lld 17+
++# https://github.com/uxlfoundation/oneTBB/issues/1274
++# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=274337
++include(CheckLinkerFlag)
++check_linker_flag(CXX LINKER:--undefined-version HAVE_LD_UNDEFINED_VERSION)
++if(HAVE_LD_UNDEFINED_VERSION)
++    message(STATUS "Set --undefined-version for lld")
++  add_link_options(LINKER:--undefined-version)
++endif()
+
+ # -------------------------------------------------------------------
+ # Common dependencies
