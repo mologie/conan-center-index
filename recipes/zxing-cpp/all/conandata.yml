@@ -23,8 +23,8 @@ sources:
 patches:
   "2.3.0":
     # Public patches for using ZXing in Authentic Vision's libavcore
-    - patch_file: "patches/2.3.0-0001-expose-rs.patch"
-      patch_description: "expose Reed-Solomon headers and add AVCore GF"
+    - patch_file: "patches/2.3.0-0001-expose-internals.patch"
+      patch_description: "expose internal headers (RS, BitMatrix, DecoderResult, DM/QR Decoder) and add AVCore GF"
       patch_type: "backport"
     - patch_file: "patches/2.3.0-0002-consistent-dm-reader.patch"
       patch_description: "remove conditional compilation of DataMatrix features"
